@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   build-docker-images:
-    if: ${{ !github.event.pull_request.head.repo.fork && (github.event_name != 'schedule' || github.repository == 'pleasantone/FlareSolverr') }}
+    if: ${{ (github.event_name != 'schedule' || github.repository == 'pleasantone/FlareSolverr') }}
     runs-on: ubuntu-22.04
     steps:
       - name: Find latest release
