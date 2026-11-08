@@ -39,6 +39,7 @@ jobs:
         id: docker_meta
         uses: docker/metadata-action@v6
         with:
+          context: git
           images: |
             ${{ env.REPOSITORY }},enable=${{ github.event_name != 'pull_request' }}
             ghcr.io/${{ env.REPOSITORY }}
