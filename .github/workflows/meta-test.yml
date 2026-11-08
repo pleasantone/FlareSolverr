@@ -1,4 +1,4 @@
-name: Docker release
+name: Docker meta test
 
 on:
   push:
@@ -18,14 +18,14 @@ concurrency:
 
 jobs:
   build-docker-images:
-    if: ${{ !github.event.pull_request.head.repo.fork && (github.event_name != 'schedule' || github.repository == 'FlareSolverr/FlareSolverr') }}
+    if: ${{ !github.event.pull_request.head.repo.fork && (github.event_name != 'schedule' || github.repository == 'pleasantone/FlareSolverr') }}
     runs-on: ubuntu-22.04
     steps:
       - name: Find latest release
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: echo RELEASE_TAG=$(gh release view --repo ${{ github.repository }} --json tagName --jq .tagName) >> $GITHUB_ENV
+        run: echo RELEASE_TAG=$(gh release view --repo FlareSolverr/FlareSolverr --json tagName --jq .tagName) >> $GITHUB_ENV
 
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -48,32 +48,8 @@ jobs:
           flavor: |
             latest=auto
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Login to DockerHub
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v4
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GH_PAT }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: ./Dockerfile
-          platforms: linux/386,linux/amd64,linux/arm/v7,linux/arm64/v8
-          push: true
-          tags: ${{ steps.docker_meta.outputs.tags }}
-          labels: ${{ steps.docker_meta.outputs.labels }}
+      - name: Show result
+        run: |
+          echo "event=${{ github.event_name }} RELEASE_TAG=${{ env.RELEASE_TAG }} head=$(git rev-parse HEAD) describe=$(git describe --tags --always)"
+          echo "TAGS:"; echo "${{ steps.docker_meta.outputs.tags }}"
+          echo "LABELS:"; echo "${{ steps.docker_meta.outputs.labels }}"
